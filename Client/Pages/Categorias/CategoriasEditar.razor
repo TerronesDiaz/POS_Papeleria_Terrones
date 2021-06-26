@@ -1,0 +1,40 @@
+﻿@page "/categorias/editar/{Id:int}"
+@inject HttpClient Http
+@inject NavigationManager navegar
+<h3>Editar categoría</h3>
+@if (laCategoria != null)
+{
+    <EditForm Model="@laCategoria" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="row">
+            <div class="col">
+                <input type="text" class="form-control" @bind-value="laCategoria.Nombre">
+                <ValidationMessage For="()=>laCategoria.Nombre" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <button type="submit" class="btn btn-success">Guardar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Categoria laCategoria;
+
+    protected override async Task OnInitializedAsync()
+    {
+        laCategoria = await Http.GetFromJsonAsync<Categoria>($"/api/categorias/{Id}");
+    }
+
+    private async Task Guardar()
+    {
+        await Http.PutAsJsonAsync($"/api/categorias/{laCategoria.Id}", laCategoria);
+        navegar.NavigateTo("/categorias");
+    }
+}

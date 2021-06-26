@@ -1,0 +1,91 @@
+﻿@page "/articulos/salida/{Id:int}"
+@inject HttpClient Http
+@inject NavigationManager Navegar
+<h3>Salida de artículo</h3>
+@if (elArticulo != null)
+{
+    <h3>@elArticulo.Nombre</h3>
+
+    <EditForm Model="@laSalida" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="row mb-3">
+            <div class="col">
+                <label>Nota</label>
+                <InputText class="form-control" @bind-Value="laSalida.Nota"></InputText>
+                <ValidationMessage For="()=>laSalida.Nota" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Cantidad</label>
+                <InputNumber class="form-control" @bind-Value="laSalida.Cantidad"></InputNumber>
+                <ValidationMessage For="()=>laSalida.Cantidad" />
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <label>Fecha</label>
+                <InputDate class="form-control" @bind-Value="laSalida.Fecha"></InputDate>
+                <ValidationMessage For="()=>laSalida.Fecha" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <button type="submit" class="btn btn-success">Guardar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+@if (mostrarMensaje) 
+{
+<div class="modal" tabindex="-1" style="display:block;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Importante</h5>
+            </div>
+            <div class="modal-body">
+                <p>Solo se tiene una existencia de @elArticulo.Existencia</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Aceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Salida laSalida;
+    private Articulo elArticulo;
+    private bool mostrarMensaje = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        elArticulo = await Http.GetFromJsonAsync<Articulo>($"/api/articulos/{Id}");
+        laSalida = new Salida() { Fecha = DateTime.Now, ArticuloId = Id };
+    }
+    private async Task Guardar()
+    {
+        if ((elArticulo.Existencia - laSalida.Cantidad) < 0)
+        {
+            mostrarMensaje = true;
+        }
+        else
+        {
+            await Http.PostAsJsonAsync("api/articulos/salidas", laSalida);
+            Navegar.NavigateTo("/articulos");
+        }
+
+
+    }
+    private void Aceptar()
+    {
+        mostrarMensaje = false;
+    }
+}

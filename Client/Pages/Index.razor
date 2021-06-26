@@ -1,0 +1,100 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager navegar
+<h1 style="text-align:center">Punto de venta de papelería Terrones</h1>
+
+@if (losArticulos == null)
+{
+    <p><em>cargando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Categoría</th>
+                <th>Agregar a carrito</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var articulo in losArticulos)
+            {
+                <tr>
+                    <td>@articulo.Nombre</td>
+                    <td>$@articulo.Precio</td>
+                    <td>@articulo.Categoria.Nombre</td>
+                    <td>
+                        <button @onclick="()=> precioPagar = precioPagar + articulo.Precio">Agregar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="container-fluid h-100">
+    <div class="row w-100 align-items-center">
+        <div class="col text-center">
+            <button class="btn btn-info mb-4 btn-lg" @onclick="Comprar">Comprar</button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid h-100">
+    <div class="row w-100 align-items-center">
+        <div class="col text-center">
+            <h1>Su total a pagar es: $@precioPagar</h1>
+        </div>
+    </div>
+</div>
+
+@if (mostrarMensaje)
+{
+    <div class="modal" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gracias por su compra!!!</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Su total fue de: @precioPagar pesos. </p>
+                    <p>Esperamos que vuelva pronto :)</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Cerrar">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code{
+   private Articulo elArticulo = new Articulo();
+   private List<Articulo> losArticulos;
+   private double precioPagar = 0;
+   private bool mostrarMensaje = false;
+   protected override async Task OnInitializedAsync()
+   {
+       await Cargar();
+   }
+   protected async Task Cargar()
+   {
+       losArticulos = await Http.GetFromJsonAsync<List<Articulo>>("/api/articulos");
+   }
+
+   private void Comprar()
+   {
+       mostrarMensaje = true;
+   }
+   private void Cerrar()
+   {
+       mostrarMensaje = false;
+       precioPagar = 0;
+   }
+
+
+
+}

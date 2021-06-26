@@ -1,0 +1,93 @@
+﻿@page "/categorias"
+@inject HttpClient Http
+@inject NavigationManager navegar
+<h3>Listado de Categorías</h3>
+<button class="btn btn-info mb-3" @onclick="()=>Nuevo()">Nueva categoría</button>
+@if (lasCategorias != null)
+{
+    <div class="row mb-3">
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Categoria categoria in lasCategorias)
+                    {
+                        <tr>
+                            <td>@categoria.Nombre</td>
+                            <td>
+                                <button class="btn btn-sm" @onclick="() => { Modificar(categoria.Id); }"><span class="oi oi-pencil"></span></button>
+                                <button class="btn btn-sm" @onclick="() => { Eliminar(categoria.Id); }"><span class="oi oi-trash"></span></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@if (mostrarMensaje)
+{
+    <div class="modal" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importante</h5>
+                </div>
+                <div class="modal-body">
+                    <p>La categoría se borrará permanentemente</p>
+                    <p>¿Seguro que quiere continuar?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" @onclick="Borrar">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    private List<Categoria> lasCategorias;
+
+    private int BorrarId;
+    private bool mostrarMensaje = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+    protected async Task Cargar()
+    {
+        lasCategorias = await Http.GetFromJsonAsync<List<Categoria>>("/api/categorias");
+    }
+
+    private void Nuevo()
+    {
+        navegar.NavigateTo("/categorias/crear");
+    }
+
+    private void Modificar(int id)
+    {
+        navegar.NavigateTo($"/categorias/editar/{id}");
+    }
+    private void Eliminar(int id)
+    {
+        BorrarId = id;
+        mostrarMensaje = true;
+    }
+    private async Task Cancelar()
+    {
+        BorrarId = 0;
+        mostrarMensaje = false;
+        await Cargar();
+    }
+    private async Task Borrar()
+    {
+        await Http.DeleteAsync($"api/categorias/{BorrarId}");
+        await Cancelar();
+    }
+}

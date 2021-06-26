@@ -1,0 +1,29 @@
+﻿@page "/categorias/crear"
+@inject HttpClient Http
+@inject NavigationManager Navegar
+<h3>Nueva Categoría</h3>
+<EditForm Model="@laCategoria" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row mb-3">
+        <div class="col">
+            <InputText class="form-control" @bind-Value="laCategoria.Nombre" />
+            <ValidationMessage For="()=>laCategoria.Nombre" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button type="submit" class="btn btn-success">Guardar</button>
+        </div>
+    </div>
+</EditForm>
+@code {
+    private Categoria laCategoria = new Categoria();
+
+    private async Task Guardar()
+    {
+        await Http.PostAsJsonAsync("/api/categorias", laCategoria);
+        Navegar.NavigateTo("/categorias");
+    }
+}

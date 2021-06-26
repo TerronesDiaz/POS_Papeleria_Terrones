@@ -1,0 +1,70 @@
+﻿@page "/articulos/crear"
+@inject HttpClient Http
+@inject NavigationManager Navegar
+<h3>Nuevo artículo</h3>
+<EditForm Model="@elArticulo" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row mb-3">
+        <div class="col">
+            <label>Nombre del Artículo</label>
+            <InputText class="form-control" @bind-Value="elArticulo.Nombre"></InputText>
+            <ValidationMessage For="()=>elArticulo.Nombre" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            <label>Precio</label>
+            <InputNumber class="form-control" @bind-Value="elArticulo.Precio"></InputNumber>
+            <ValidationMessage For="()=>elArticulo.Precio" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            <label>Costo</label>
+            <InputNumber class="form-control" @bind-Value="elArticulo.Costo"></InputNumber>
+            <ValidationMessage For="()=>elArticulo.Costo" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            <label>Cantidad en existencia</label>
+            <InputNumber class="form-control" @bind-Value="elArticulo.Existencia"></InputNumber>
+            <ValidationMessage For="()=>elArticulo.Existencia" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="categoria">Categoria</label>
+        <ImputSelectNumber class="form-control" @bind-Value="elArticulo.CategoriaId" id="categoria">
+            @foreach (Categoria elemento in lasCategorias) 
+            {
+            <option value="@elemento.Id">@elemento.Nombre</option>
+            }
+        </ImputSelectNumber>
+        <ValidationMessage For="@(()=>elArticulo.CategoriaId)"/>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <button type="submit" class="btn btn-success">Guardar</button>
+        </div>
+    </div>
+</EditForm>
+@code {
+   private Articulo elArticulo = new Articulo();
+   private List<Categoria> lasCategorias = new List<Categoria>();
+
+   protected override async Task OnInitializedAsync()
+   {
+       lasCategorias = await Http.GetFromJsonAsync<List<Categoria>>("api/categorias");
+       elArticulo.CategoriaId = lasCategorias[0].Id;
+   }
+
+   private async Task Guardar()
+   {
+       await Http.PostAsJsonAsync("/api/articulos", elArticulo);
+       Navegar.NavigateTo("/articulos");
+   }
+}

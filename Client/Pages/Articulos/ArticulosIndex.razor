@@ -1,0 +1,122 @@
+﻿@page "/articulos"
+@inject HttpClient Http
+@inject NavigationManager navegar
+
+<h3>Articulos</h3>
+<button class="btn btn-info mb-3" @onclick="()=>Nuevo()">Crear artículo</button>
+
+@if (losArticulos == null)
+{
+    <p><em>cargando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Costo</th>
+                <th>Precio</th>
+                <th>Existencia</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var articulo in losArticulos)
+            {
+                <tr>
+                    <td>@articulo.Nombre</td>
+                    <td>$@articulo.Costo</td>
+                    <td>$@articulo.Precio</td>
+                    <td>@articulo.Existencia</td>
+                    <td>@articulo.Categoria.Nombre</td>
+                    <td>
+                        <button class="btn btn-sm" @onclick="() => { Entradas(articulo.Id); }"><span class="oi oi-plus"></span></button>
+                        @if (articulo.Existencia>0)
+                        {
+                            <button class="btn btn-sm" @onclick="() => { Salidas(articulo.Id); }"><span class="oi oi-minus"></span></button>
+                        }
+                        <button class="btn btn-sm" @onclick="() => { Modificar(articulo.Id); }"><span class="oi oi-pencil"></span></button>
+                        <button class="btn btn-sm" @onclick="() => { Eliminar(articulo.Id); }"><span class="oi oi-trash"></span></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@if (mostrarMensaje)
+{
+    <div class="modal" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importante</h5>
+                </div>
+                <div class="modal-body">
+                    <p>El artículo se borrará permanentemente</p>
+                    <p>¿Seguro que quiere continuar?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" @onclick="Borrar">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+   private Articulo elArticulo = new Articulo();
+   private List<Articulo> losArticulos;
+   private int BorrarId;
+   private bool mostrarMensaje;
+
+   protected override async Task OnInitializedAsync()
+   {
+       await Cargar();
+   }
+   protected async Task Cargar()
+   {
+       losArticulos = await Http.GetFromJsonAsync<List<Articulo>>("/api/articulos");
+   }
+
+   private void Guardar()
+   {
+       losArticulos.Add(new Articulo() { Nombre = elArticulo.Nombre });
+   }
+
+
+   private void Nuevo()
+   {
+       navegar.NavigateTo("/articulos/crear");
+   }
+   private void Modificar(int id)
+   {
+       navegar.NavigateTo($"/articulos/editar/{id}");
+   }
+   private void Eliminar(int id)
+   {
+       BorrarId = id;
+       mostrarMensaje = true;
+   }
+   private async Task Cancelar()
+   {
+       BorrarId = 0;
+       mostrarMensaje = false;
+       await Cargar();
+   }
+   private async Task Borrar()
+   {
+       await Http.DeleteAsync($"api/articulos/{BorrarId}");
+       await Cancelar();
+   }
+   private void Entradas(int id)
+   {
+       navegar.NavigateTo($"/articulos/entrada/{id}");
+   }
+   private void Salidas(int Id)
+   {
+       navegar.NavigateTo($"/articulos/salida/{Id}");
+   }
+}
